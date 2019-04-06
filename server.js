@@ -155,40 +155,38 @@ router.route('/movies')
             res.status(403).json({ success: false, message: "Empty query." });
         }
         else {
-            Movie.find(req.body).select("title year genre actors").exec(function(err, movie) {
-                if (err) res.send(err);
-
-                if (movie && movie.length > 0) {
-                    // check for review parameter
-                    if (req.query && req.query.reviews && req.query.reviews === "true") {
-                        console.log("query reviews: true");
-                        console.log("movie: " + JSON.stringify(movie));
-                        Movie.aggregate()
-                        .match({ _id: movie[0]._id })
-                        .lookup({ from: 'reviews', localField: 'movie', foreignField: '_id', as: 'reviews'})
-                        .exec(function(err, movie) {
-                            if (err) return res.send(err);
-                            if (movie) {
-                                console.log(JSON.stringify(movie));
-                                return res.status(200).json({
-                                    success: true,
-                                    res: movie
-                                });
-                            }
+            if (req.query && req.query.reviews && req.query.reviews === "true") {
+                console.log("query reviews: true");
+                Movie.aggregate()
+                .lookup({from: 'reviews', localField: '_id', foreignField: 'movie_id', as: 'reviews'})
+                .match(req.body)
+                .exec(function (err, movie) {
+                    if (err) return res.send(err);
+                    if (movie) {
+                        console.log(JSON.stringify(movie));
+                        return res.status(200).json({
+                            success: true,
+                            result: movie
                         });
                     }
-                    else {
+                });
+            }
+            else {
+                Movie.find(req.body).select("title year genre actors").exec(function(err, movie) {
+                    if (err) res.send(err);
+                    if (movie && movie.length > 0) {
+                        // check for review parameter
                         console.log("query reviews: false");
                         return res.status(200).json({
                             success: true,
                             result: movie
                         });
                     }
-                }
-                else {
-                    return res.status(404).json({ success: false, message: "Movie not found." });
-                }
-            });
+                    else {
+                        return res.status(404).json({ success: false, message: "Movie not found." });
+                    }
+                });
+            }
         }
     })
     .put(authJwtController.isAuthenticated, function (req, res) {
@@ -244,16 +242,16 @@ router.route('/reviews')
             var review = new Review();
             review.quote = req.body.quote;
             review.rating = req.body.rating;
+            review.movie_id = movie._id;
             console.log(req.headers.authorization.substring(4));
             jwt.verify(req.headers.authorization.substring(4), process.env.SECRET_KEY, function(err, dec) {
                 if (err) return res.status(403).json(err);
-                review.user = dec.id;
-                review.movie = movie._id;
+                review.user_id = dec.id;
                 review.save(function(err) {
                     if (err) {
                         if (err.code === 11000) {
                             return res.status(403).json({
-                                success: false, message: 'A review with that Id already exists.'
+                                success: false, message: 'You have already posted a review.'
                             });
                         }
                         else {
