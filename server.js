@@ -160,14 +160,16 @@ router.route('/movies')
 
                 if (movie && movie.length > 0) {
                     // check for review parameter
-                    if (req.query && req.query.reviews && req.query.reviews == true) {
-                        movie.aggregate([{
-                                $lookup: {
-                                    from: 'reviews', localField: 'movie', foreignField: '_id', as: 'movie'
-                                }
-                        }]).exec(function(err, movie) {
+                    if (req.query && req.query.reviews && req.query.reviews === "true") {
+                        console.log("query reviews: true");
+                        console.log("movie: " + JSON.stringify(movie));
+                        Movie.aggregate()
+                        .match({ _id: movie[0]._id })
+                        .lookup({ from: 'reviews', localField: 'movie', foreignField: '_id', as: 'reviews'})
+                        .exec(function(err, movie) {
                             if (err) return res.send(err);
                             if (movie) {
+                                console.log(JSON.stringify(movie));
                                 return res.status(200).json({
                                     success: true,
                                     res: movie
@@ -176,6 +178,7 @@ router.route('/movies')
                         });
                     }
                     else {
+                        console.log("query reviews: false");
                         return res.status(200).json({
                             success: true,
                             result: movie
@@ -237,23 +240,28 @@ router.route('/reviews')
         Movie.findById(req.body.movie, function(err, movie) {
             if (err) return res.status(403).json(err);
             if (!movie) return res.status(403).json({ success: false, message: "Non-existent movie." });
+            console.log(JSON.stringify(movie));
             var review = new Review();
             review.quote = req.body.quote;
             review.rating = req.body.rating;
-            review.user = jwt.verify(req.headers.token, process.env.SECRET_KEY)._id;
-            review.movie = movie._id;
-            review.save(function(err) {
-                if (err) {
-                    if (err.code === 11000) {
-                        return res.status(403).json({
-                            success: false, message: 'A review with that Id already exists.'
-                        });
+            console.log(req.headers.authorization.substring(4));
+            jwt.verify(req.headers.authorization.substring(4), process.env.SECRET_KEY, function(err, dec) {
+                if (err) return res.status(403).json(err);
+                review.user = dec.id;
+                review.movie = movie._id;
+                review.save(function(err) {
+                    if (err) {
+                        if (err.code === 11000) {
+                            return res.status(403).json({
+                                success: false, message: 'A review with that Id already exists.'
+                            });
+                        }
+                        else {
+                            return res.status(403).send(err);
+                        }
                     }
-                    else {
-                        return res.status(403).send(err);
-                    }
-                }
-                res.status(200).send({ success: true, message: "Added review." });
+                    res.status(200).send({ success: true, message: "Added review." });
+                });
             });
         });
     });
