@@ -240,7 +240,7 @@ router.route('/reviews')
             var review = new Review();
             review.quote = req.body.quote;
             review.rating = req.body.rating;
-            review.user = JSON.parse(jwt.verify(req.headers.token, process.env.SECRET_KEY))._id;
+            review.user = jwt.verify(req.headers.token, process.env.SECRET_KEY)._id;
             review.movie = movie._id;
             review.save(function(err) {
                 if (err) {
