@@ -40,6 +40,7 @@ router.route('/users/:userId')
             if (err) res.send(err);
 
             var userJson = JSON.stringify(user);
+
             // return that user
             res.json(user);
         });
@@ -158,8 +159,28 @@ router.route('/movies')
                 if (err) res.send(err);
 
                 if (movie && movie.length > 0) {
-                    return res.status(200).json({ success: true,
-                        result: movie });
+                    // check for review parameter
+                    if (req.query && req.query.review && req.query.review == true) {
+                        movie.aggregate([{
+                                $lookup: {
+                                    from: 'reviews', localField: 'movie', foreignField: '_id', as: 'movie'
+                                }
+                        }]).exec(function(err, movie) {
+                            if (err) return res.send(err);
+                            if (movie) {
+                                return res.status(200).json({
+                                    success: true,
+                                    res: movie
+                                });
+                            }
+                        });
+                    }
+                    else {
+                        return res.status(200).json({
+                            success: true,
+                            result: movie
+                        });
+                    }
                 }
                 else {
                     return res.status(404).json({ success: false, message: "Movie not found." });
