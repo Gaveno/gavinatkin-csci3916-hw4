@@ -35,6 +35,7 @@ router.route('/postjwt')
 router.route('/users/:userId')
     .get(authJwtController.isAuthenticated, function (req, res) {
         var id = req.params.userId;
+        console.log(JSON.stringify(req.params));
         User.findById(id, function(err, user) {
             if (err) res.send(err);
 
