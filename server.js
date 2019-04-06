@@ -160,7 +160,7 @@ router.route('/movies')
 
                 if (movie && movie.length > 0) {
                     // check for review parameter
-                    if (req.query && req.query.review && req.query.review == true) {
+                    if (req.query && req.query.reviews && req.query.reviews == true) {
                         movie.aggregate([{
                                 $lookup: {
                                     from: 'reviews', localField: 'movie', foreignField: '_id', as: 'movie'
