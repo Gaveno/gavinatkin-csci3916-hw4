@@ -227,6 +227,37 @@ router.route('/movies')
         res.status(403).send({ success: false, message: "Operation not supported. Only POST, PUT, GET, and DELETE allowed." });
     });
 
+router.route('/reviews')
+    .post(authJwtController.isAuthenticated, function(req, res) {
+        if (!req.body) return res.status(403).json({ success: false, message: "Empty body."});
+        if (!req.body.movie) return res.status(403).json({ success: false, message: "Movie not specified."});
+        if (!req.body.quote) return res.status(403).json({ success: false, message: "Must provide quote."});
+        if (!req.body.rating) return res.status(403).json({ success: false, message: "Must provide rating 1-5 stars."});
+
+        Movie.findById(req.body.movie, function(err, movie) {
+            if (err) return res.status(403).json(err);
+            if (!movie) return res.status(403).json({ success: false, message: "Non-existent movie." });
+            var review = new Review();
+            review.quote = req.body.quote;
+            review.rating = req.body.rating;
+            review.user = JSON.parse(jwt.verify(req.headers.token, process.env.SECRET_KEY))._id;
+            review.movie = movie._id;
+            review.save(function(err) {
+                if (err) {
+                    if (err.code === 11000) {
+                        return res.status(403).json({
+                            success: false, message: 'A review with that Id already exists.'
+                        });
+                    }
+                    else {
+                        return res.status(403).send(err);
+                    }
+                }
+                res.status(200).send({ success: true, message: "Added review." });
+            });
+        });
+    });
+
 router.route('/')
     .all(function (req, res) {
         console.log(req.body);
