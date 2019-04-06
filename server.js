@@ -156,14 +156,14 @@ router.route('/movies')
         }
         else {
             if (req.query && req.query.reviews && req.query.reviews === "true") {
-                console.log("query reviews: true");
+                //console.log("query reviews: true");
                 Movie.aggregate()
                 .lookup({from: 'reviews', localField: '_id', foreignField: 'movie_id', as: 'reviews'})
                 .match(req.body)
                 .exec(function (err, movie) {
                     if (err) return res.send(err);
                     if (movie) {
-                        console.log(JSON.stringify(movie));
+                        //console.log(JSON.stringify(movie));
                         return res.status(200).json({
                             success: true,
                             result: movie
@@ -176,7 +176,7 @@ router.route('/movies')
                     if (err) res.send(err);
                     if (movie && movie.length > 0) {
                         // check for review parameter
-                        console.log("query reviews: false");
+                        //console.log("query reviews: false");
                         return res.status(200).json({
                             success: true,
                             result: movie
@@ -238,12 +238,12 @@ router.route('/reviews')
         Movie.findById(req.body.movie, function(err, movie) {
             if (err) return res.status(403).json(err);
             if (!movie) return res.status(403).json({ success: false, message: "Non-existent movie." });
-            console.log(JSON.stringify(movie));
+            //console.log(JSON.stringify(movie));
             var review = new Review();
             review.quote = req.body.quote;
             review.rating = req.body.rating;
             review.movie_id = movie._id;
-            console.log(req.headers.authorization.substring(4));
+            //console.log(req.headers.authorization.substring(4));
             jwt.verify(req.headers.authorization.substring(4), process.env.SECRET_KEY, function(err, dec) {
                 if (err) return res.status(403).json(err);
                 review.user_id = dec.id;
