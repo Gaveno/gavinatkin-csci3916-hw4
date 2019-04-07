@@ -250,6 +250,9 @@ router.route('/reviews')
     .post(authJwtController.isAuthenticated, function(req, res) {
         if (!req.body) return res.status(403).json({ success: false, message: "Empty body."});
         if (!req.body.movie) return res.status(403).json({ success: false, message: "Movie not specified."});
+        if (req.body.movie === 0) return res.status(403).json({
+            success: false, message: "Invalid movie id. First find a movie with GET movies"
+        });
         if (!req.body.quote) return res.status(403).json({ success: false, message: "Must provide quote."});
         if (!req.body.rating) return res.status(403).json({ success: false, message: "Must provide rating 1-5 stars."});
 
