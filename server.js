@@ -255,7 +255,7 @@ router.route('/reviews')
 
         Movie.findById(req.body.movie, function(err, movie) {
             if (err) return res.status(403).json(err);
-            if (!movie) return res.status(403).json({ success: false, message: "Non-existent movie." });
+            if (!movie || movie.length <= 0) return res.status(403).json({ success: false, message: "Non-existent movie." });
             //console.log(JSON.stringify(movie));
             var review = new Review();
             review.quote = req.body.quote;
