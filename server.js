@@ -123,6 +123,9 @@ router.route('/signin')
     });
 
 router.route('/movies')
+    /* Post Movies
+     *
+     */
     .post(authJwtController.isAuthenticated, function (req, res) {
         if (!req.body.title || !req.body.year || !req.body.genre || !req.body.actors ||
             !req.body.actors[0].actorname || !req.body.actors[1].actorname || !req.body.actors[2].actorname ||
@@ -150,6 +153,9 @@ router.route('/movies')
             });
         }
     })
+    /* Get Movies
+     *
+     */
     .get(authJwtController.isAuthenticated, function (req, res) {
         if (!req.body) {
             res.status(403).json({ success: false, message: "Empty query." });
@@ -162,11 +168,17 @@ router.route('/movies')
                 .match(req.body)
                 .exec(function (err, movie) {
                     if (err) return res.send(err);
-                    if (movie) {
+                    if (movie && movie.length > 0) {
                         //console.log(JSON.stringify(movie));
                         return res.status(200).json({
                             success: true,
                             result: movie
+                        });
+                    }
+                    else {
+                        return res.status(403).json({
+                            success: false,
+                            message: "Movie not found."
                         });
                     }
                 });
@@ -189,6 +201,9 @@ router.route('/movies')
             }
         }
     })
+    /* Put Movies
+     *
+     */
     .put(authJwtController.isAuthenticated, function (req, res) {
         if (!req.body || !req.body.findby || !req.body.updateto) {
             res.status(403).json({ success: false, message: "Empty body."});
@@ -210,6 +225,9 @@ router.route('/movies')
             })
         }
     })
+    /* Delete Movies
+     *
+     */
     .delete(authJwtController.isAuthenticated, function(req, res) {
         if (!req.body) {
             res.status(403).json({ success: false, message: "Empty body."});
