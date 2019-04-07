@@ -164,8 +164,8 @@ router.route('/movies')
             if (req.query && req.query.reviews && req.query.reviews === "true") {
                 //console.log("query reviews: true");
                 Movie.aggregate()
-                .lookup({from: 'reviews', localField: '_id', foreignField: 'movie_id', as: 'reviews'})
                 .match(req.body)
+                .lookup({from: 'reviews', localField: '_id', foreignField: 'movie_id', as: 'reviews'})
                 .exec(function (err, movie) {
                     if (err) return res.send(err);
                     if (movie && movie.length > 0) {
@@ -195,7 +195,9 @@ router.route('/movies')
                         });
                     }
                     else {
-                        return res.status(404).json({ success: false, message: "Movie not found." });
+                        return res.status(404).json({
+                            success: false, message: "Movie not found."
+                        });
                     }
                 });
             }
