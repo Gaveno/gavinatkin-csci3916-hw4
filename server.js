@@ -283,6 +283,13 @@ router.route('/reviews')
                 });
             });
         });
+    })
+    .all(function (req, res) {
+        console.log(req.body);
+        res.status(403).json({
+            success: false,
+            message: "Invalid operation. Only POST requests are allowed on reviews."
+        })
     });
 
 router.route('/')
