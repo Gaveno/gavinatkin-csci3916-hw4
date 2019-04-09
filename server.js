@@ -238,10 +238,16 @@ router.route('/movies')
             Movie.findOneAndDelete(req.body, function(err, doc) {
                 console.log(JSON.stringify(doc));
                 if (err) res.status(403).json({ success: false, message: "Failed to delete." });
-                else if (doc.n === 0) res.status(403).json({ success: false, message: "Did not find record to delete." });
+                else if (!doc || !doc.n || doc.n === 0) res.status(403).json({
+                    success: false, message: "Did not find record to delete."
+                });
                 else  {
                     Review.deleteMany({ movie_id: doc._id }, function(err, rev) {
                         if (err) return res.status(200).json({
+                            success: true,
+                            message: "Deleted Movie. Failed to delete reviews."
+                        });
+                        if (!rev || !rev.n || rev.n === 0) return res.status(200).json({
                             success: true,
                             message: "Deleted Movie. Failed to delete reviews."
                         });
