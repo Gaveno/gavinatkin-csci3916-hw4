@@ -238,7 +238,7 @@ router.route('/movies')
             Movie.findOneAndDelete(req.body, function(err, doc) {
                 console.log(JSON.stringify(doc));
                 if (err) res.status(403).json({ success: false, message: "Failed to delete." });
-                else if (!doc || !doc.n || doc.n === 0) res.status(403).json({
+                else if (!doc) res.status(403).json({
                     success: false, message: "Did not find record to delete."
                 });
                 else  {
