@@ -235,11 +235,24 @@ router.route('/movies')
             res.status(403).json({ success: false, message: "Empty body."});
         }
         else {
-            Movie.deleteOne(req.body, function(err, doc) {
+            Movie.findOneAndDelete(req.body, function(err, doc) {
                 console.log(JSON.stringify(doc));
                 if (err) res.status(403).json({ success: false, message: "Failed to delete." });
-                else if (doc.n === 0) res.status(403).json({ success: false, message: "Did not find records to delete." });
-                else res.status(200).json({ success: true, message: "Successfully deleted.", numberDeleted: doc.n });
+                else if (doc.n === 0) res.status(403).json({ success: false, message: "Did not find record to delete." });
+                else  {
+                    Review.deleteMany({ movie_id: doc._id }, function(err, rev) {
+                        if (err) return res.status(200).json({
+                            success: true,
+                            message: "Deleted Movie. Failed to delete reviews."
+                        });
+                        return res.status(200).json({
+                            success: true,
+                            message: "Successfully deleted movie and reviews.",
+                            moviesDeleted: doc.n,
+                            reviewsDeleted: rev.n
+                        })
+                    });
+                }
             })
         }
     })
