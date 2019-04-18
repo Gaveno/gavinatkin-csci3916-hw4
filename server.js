@@ -140,6 +140,8 @@ router.route('/movies')
             movie.year = req.body.year;
             movie.genre = req.body.genre;
             movie.actors = req.body.actors;
+            if (req.body.imageURL)
+                movie.imageURL = req.body.imageURL;
             movie.save(function(err) {
                 if (err) {
                     if (err.code === 11000) {
