@@ -345,6 +345,7 @@ router.route('/reviews')
             jwt.verify(req.headers.authorization.substring(4), process.env.SECRET_KEY, function(err, dec) {
                 if (err) return res.status(403).json(err);
                 review.user_id = dec.id;
+                review.username = dec.username;
                 review.save(function(err) {
                     if (err) {
                         if (err.code === 11000) {
