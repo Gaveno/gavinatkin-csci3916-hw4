@@ -7,6 +7,7 @@ var User = require('./Users');
 var Movie = require('./Movies');
 var Review = require('./Reviews');
 var jwt = require('jsonwebtoken');
+var mongoose = require('mongoose');
 
 var app = express();
 module.exports = app; // for testing
@@ -96,50 +97,46 @@ router.route('/signup')
 
 router.route('/movies/:movieid')
     .get(authJwtController.isAuthenticated, function(req, res) {
-        if (!req.body) {
-            res.status(403).json({ success: false, message: "Empty query." });
-        }
-        else {
-            if (req.query && req.query.reviews && req.query.reviews === "true") {
-                //console.log("query reviews: true");
-                Movie.aggregate()
-                    .match({_id: req.params.movieid})
-                    .lookup({from: 'reviews', localField: '_id', foreignField: 'movie_id', as: 'reviews'})
-                    .exec(function (err, movie) {
-                        if (err) return res.send(err);
-                        if (movie && movie.length > 0) {
-                            //console.log(JSON.stringify(movie));
-                            return res.status(200).json({
-                                success: true,
-                                result: movie
-                            });
-                        }
-                        else {
-                            return res.status(403).json({
-                                success: false,
-                                message: "Movie not found."
-                            });
-                        }
-                    });
-            }
-            else {
-                Movie.find(req.params.movieid).select("title year genre actors").exec(function(err, movie) {
-                    if (err) res.send(err);
-                    if (movie && movie.length > 0) {
-                        // check for review parameter
-                        //console.log("query reviews: false");
+        console.log("movieid: "+req.params.movieid);
+        if (req.query && req.query.reviews && req.query.reviews === "true") {
+            //console.log("query reviews: true");
+            Movie.aggregate()
+                .match({_id: mongoose.Types.ObjectId(req.params.movieid)})
+                .lookup({from: 'reviews', localField: '_id', foreignField: 'movie_id', as: 'reviews'})
+                .exec(function (err, movie) {
+                    if (err) return res.send(err);
+                    if (movie) {
+                        //console.log(JSON.stringify(movie));
                         return res.status(200).json({
                             success: true,
                             result: movie
                         });
                     }
                     else {
-                        return res.status(404).json({
-                            success: false, message: "Movie not found."
+                        return res.status(403).json({
+                            success: false,
+                            message: "Movie not found. 1"
                         });
                     }
                 });
-            }
+        }
+        else {
+            Movie.find(req.params.movieid).select("title year genre actors").exec(function(err, movie) {
+                if (err) res.send(err);
+                if (movie && movie.length > 0) {
+                    // check for review parameter
+                    //console.log("query reviews: false");
+                    return res.status(200).json({
+                        success: true,
+                        result: movie
+                    });
+                }
+                else {
+                    return res.status(404).json({
+                        success: false, message: "Movie not found. 2"
+                    });
+                }
+            });
         }
     })
     .all(function(req, res) {
