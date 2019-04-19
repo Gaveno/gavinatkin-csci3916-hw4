@@ -94,6 +94,59 @@ router.route('/signup')
         res.status(403).send({ success: false, message: "Operation not supported. Only POST allowed." });
     });
 
+router.route('/movies/:movieid')
+    .get(authJwtController.isAuthenticated, function(req, res) {
+        if (!req.body) {
+            res.status(403).json({ success: false, message: "Empty query." });
+        }
+        else {
+            if (req.query && req.query.reviews && req.query.reviews === "true") {
+                //console.log("query reviews: true");
+                Movie.aggregate()
+                    .match({_id: req.params.movieid})
+                    .lookup({from: 'reviews', localField: '_id', foreignField: 'movie_id', as: 'reviews'})
+                    .exec(function (err, movie) {
+                        if (err) return res.send(err);
+                        if (movie && movie.length > 0) {
+                            //console.log(JSON.stringify(movie));
+                            return res.status(200).json({
+                                success: true,
+                                result: movie
+                            });
+                        }
+                        else {
+                            return res.status(403).json({
+                                success: false,
+                                message: "Movie not found."
+                            });
+                        }
+                    });
+            }
+            else {
+                Movie.find(req.params.movieid).select("title year genre actors").exec(function(err, movie) {
+                    if (err) res.send(err);
+                    if (movie && movie.length > 0) {
+                        // check for review parameter
+                        //console.log("query reviews: false");
+                        return res.status(200).json({
+                            success: true,
+                            result: movie
+                        });
+                    }
+                    else {
+                        return res.status(404).json({
+                            success: false, message: "Movie not found."
+                        });
+                    }
+                });
+            }
+        }
+    })
+    .all(function(req, res) {
+        console.log(req.body);
+        res.status(403).send({ success: false, message: "Operation not supported. Only GET allowed." });
+    });
+
 router.route('/signin')
     .post(function(req, res) {
         var userNew = new User();
