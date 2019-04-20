@@ -231,7 +231,7 @@ router.route('/movies')
                             }
                             if (movie[j].reviews.length > 0) {
                                 movie[j] = Object.assign({}, movie[j],
-                                    {avgRating: total/movie[j].reviews.length});
+                                    {avgRating: (total/movie[j].reviews.length).toFixed(1)});
                             }
                         }
                         movie.sort((a,b) => {
