@@ -223,7 +223,20 @@ router.route('/movies')
                 .exec(function (err, movie) {
                     if (err) return res.send(err);
                     if (movie && movie.length > 0) {
-                        //console.log(JSON.stringify(movie));
+                        // Add avgRating
+                        for (let j = 0; j < movie.length; j++) {
+                            let total = 0;
+                            for (let i = 0; i < movie[j].reviews.length; i++) {
+                                total += movie[j].reviews[i].rating;
+                            }
+                            if (movie[j].reviews.length > 0) {
+                                movie[j] = Object.assign({}, movie[j],
+                                    {avgRating: total/movie[j].reviews.length});
+                            }
+                        }
+                        movie.sort((a,b) => {
+                            return b.avgRating - a.avgRating;
+                        });
                         return res.status(200).json({
                             success: true,
                             result: movie
